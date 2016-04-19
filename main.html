@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <p>
+        <label id="CurrentTool">Current tool: Nothing</label>
+    </p>
+    <p>
+        <img alt="" src="http://i.imgur.com/MNvnE7F.png" onclick="ClickOnImage(1)" style="height: 100px; width: 100px" />
+        <img alt="" src="http://i.imgur.com/YEvPLLj.png" onclick="ClickOnImage(2)" style="height: 100px; width: 100px" />
+        <img alt="" src="http://i.imgur.com/EBkbuNs.png" onclick="ClickOnImage(3)" style="height: 100px; width: 100px" />
+        <img alt="" src="http://i.imgur.com/Pl80Ykq.png" id="Tongue" onclick="ClickOnImage(4)" style="height: 100px; width: 100px" />
+        <img alt="" src="http://i.imgur.com/CpMZH5a.png" id="Cloth" onclick="ClickOnImage(5)" style="height: 100px; width: 100px" /></p>
+    <p>
+        <label id="PatientLabel"></label>
+    </p>
+        <img alt="" id="PatientImage" src="http://i.imgur.com/WijVAMW.png" onclick="ClickOnImage(0)" style="height: 455px; width: 633px;" />
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+    <script language="javascript">
+
+            LastImage=-1;
+
+            PatientCID = 0;
+            HandCID   = 1;
+            NeedleCID = 2;
+            PincetCID = 3;
+            TongueCID = 4;
+            ClothCID  = 5;
+
+            var Doctor =
+            {
+                SetSpeech: function (pText)
+                {
+                    document.getElementById('DoctorLabel').innerHTML = "Me: ".concat(pText);
+                    document.getElementById('PatientLabel').innerHTML = "";
+                }
+            };
+            var Patient=
+            {
+                State: 0,
+                Type: PatientCID,
+                IsPressed: function(pType)
+                {
+                    return this.Type==pType;
+                },
+                LastTime:0,
+                SetSpeech: function(pText)
+                {
+                    document.getElementById('DoctorLabel').innerHTML = "";
+                    document.getElementById('PatientLabel').innerHTML = pText;
+                },
+                ResetSpeechInterval()
+                {
+                    this.LastTime = 0;
+                },
+                AppendSpeech: function(pText)
+                {
+                    NewTime = this.LastTime+1000
+                    setTimeout(this.SetSpeech, NewTime, pText)
+                    this.LastTime = NewTime;
+                },
+                SetState:function(pState)
+                {
+                    this.State = pState;
+                    switch(this.State)
+                    {
+                        case 1:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/nuDdixR.png";
+                            break;
+                        case 2:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/vwO8AUm.png";
+                            break;
+                        case 3:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/VIz24yK.png";
+                            break;
+                        case 4:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/xQFx5BK.png";
+                            break;
+                        case 5:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/aEUuJfe.png";
+                            break;
+                        case 6:
+                            document.getElementById('PatientImage').src = "http://i.imgur.com/XSJgg8T.png";
+                            break;
+                    }
+                },
+                Init:function()
+                {
+                    document.getElementById('PatientImage').src = "http://i.imgur.com/WijVAMW.png";
+                },
+                Press:function()
+                {
+                    CurrentTool.OnUse();
+                }
+            };
+
+            function Tool(type)
+            {
+                this.type= type;
+                this.Type=-1;
+                this.IsPressed= function(pType)
+                {
+                    return this.Type==pType;
+                }
+
+                this.CIDToName= function(pType)
+                {
+                    switch (pType) {
+                        case HandCID:
+                            return "Hand";
+                            break;
+                        case NeedleCID:
+                            return "Needle"
+                            break;
+                        case PincetCID:
+                            return "Pincet";
+                            break;
+                        case TongueCID:
+                            return "Tongue";
+                            break;
+                        case ClothCID:
+                            return "Cloth";
+                            break;
+                    };
+                    return "Nothing";
+                }
+
+                this.OnPressed = function ()
+                {
+                    //alert(this.CIDToName(this.Type));
+                }
+            };
+
+            var Hand=
+            {
+                   mTool :Object,
+                   Type: HandCID,
+                   Init:function()
+                   {
+                       this.mTool = new Tool();
+                       this.mTool.Type = this.Type;
+                   },
+                   Press:function()
+                   {
+                       this.mTool.OnPressed();
+                       SetCurrentTool(this);
+                   },
+                   OnUse:function()
+                   {
+                       switch (Patient.State) {
+                           case 0:
+                               Patient.SetSpeech("NO WAY YOU'RE GONNA PINCH THAT WITH YOUR HAND! YOU'RE NOT EVEN WEARING ANY GLOVES!");
+                               break;
+                           case 1:
+                               Patient.SetSpeech("Thats disgusting");
+                               break;
+                           case 2:
+                               Doctor.SetSpeech("I put my hand inside, but I couldn't find any gold!");
+                               break;
+                           case 3:
+                               Patient.SetState(4);
+                               Patient.SetSpeech("Could you get your hand out of me please?");
+                               break;
+                           case 4:
+                               Patient.SetSpeech("Could you get your hand out of me please?");
+                               break;
+                           case 5:
+                               Patient.SetSpeech("That would be unhandy!");
+                               break;
+                        default:
+                               break;
+                       }
+                   }
+            };
+
+            var Needle=
+            {
+                   mTool: Object,
+                   Type: NeedleCID,
+
+                   Init:function()
+                   {
+                       this.mTool = new Tool();
+                       this.mTool.Type = this.Type;
+                   },
+                   Press:function()
+                   {
+                       this.mTool.OnPressed();
+                       SetCurrentTool(this);
+                   },
+                   
+                   OnUse:function()
+                   {
+                       switch (Patient.State)
+                       {
+                           case 0:
+                           case 1:
+                               Patient.SetSpeech("OUCH! What are you doing!");
+                               break;
+                           case 2:
+                               Doctor.SetSpeech("I better desinfect the wound first somehow");
+                               break;
+                           case 3:
+                               Doctor.SetSpeech("I have to get rid of my slime in her wound");
+                               break;
+                           case 4:
+                               Doctor.SetSpeech("I think I have to unstuck myself first, before I can stitch her back up");
+                               break;
+                           case 5:
+                               Patient.State = 1000;
+                               Patient.SetSpeech("Shouldnt you sedate me first?");
+                               Time = 4000;
+                               setTimeout(Doctor.SetSpeech, Time, "*Proceeds to stitch the woman up*");
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "OUCH");
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "THAT HURTS!");
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "Please stop?");
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "ARGGG");
+                               Time += 4000;
+                               setTimeout(Patient.SetState, Time, 6);
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "Wow! You managed to clear me up all together!");
+                               Time += 4000;
+                               setTimeout(Patient.SetSpeech, Time, "You are one handsome doctor, you know that?");
+                               Time += 4000;
+                              
+                               Encrypted = "U2FsdGVkX18THPqR3E4T44SRDh3qaobEf2V69otZYh6xh9RbNxJF+8kluiK05Yed";
+                               Decrypted = CryptoJS.AES.decrypt(Encrypted, "HahaSuckOnThisHackers:)").toString(CryptoJS.enc.Utf8);
+                               setTimeout(Patient.SetSpeech, Time, "Would you like to get my number? :$ It's " + Decrypted + ", call me ;))");
+
+
+                               break;
+                       }
+                   }
+            };
+
+            var Pincet=
+            {
+                   mTool: Object,
+                   Type: PincetCID,
+                   Init:function()
+                   {
+                       this.mTool = new Tool();
+                       this.mTool.Type = this.Type;
+                   },
+                   Press:function()
+                   {
+                       this.mTool.OnPressed();
+                       SetCurrentTool(this);
+                   },
+                   OnUse: function () {
+                       switch (Patient.State)
+                       {
+                           case 0:
+                               Patient.SetState(1);
+                               Patient.SetSpeech("Ewwww, get it off me!");
+                               break;
+                           case 1:
+                               Patient.SetSpeech("I think thats enough pinching");
+                               break;
+                           case 2:
+                               Patient.SetSpeech("STOP PINCHING ME YOU RETART");
+                               break;
+                           case 3:
+                               Patient.SetSpeech("Go away with that pincet you idiot!");
+                               break;
+                           case 4:
+                               Doctor.SetSpeech("I havent seen 127 hours yet so I don't know how to cut off my hand");
+                               break;
+                           case 5:
+                               Doctor.SetSpeech("Ouch! Stop that!");
+                               break;
+                           default:
+                               break;
+                       }
+                   }
+
+            };
+
+            var Tongue=
+            {
+                mTool: Object,
+                Type: TongueCID,
+                Init:function()
+                {
+                    this.mTool = new Tool();
+                    this.mTool.Type = this.Type;
+                },
+                Press:function()
+                {
+                    this.mTool.OnPressed();
+                    SetCurrentTool(this);
+                },
+                
+                OnUse:function()
+                {
+                    switch (Patient.State) {
+                        case 0:
+                            Patient.SetSpeech("Get away from me you perv!");
+                            break;
+                        case 1:
+                            Patient.SetSpeech("I think there's better ways of cleaning my face");
+                            break;
+                        case 2:
+                            Patient.State = 3;
+                            setTimeout(Patient.SetSpeech, 0, "Uhmm..");
+                            setTimeout(Patient.SetSpeech, 1000, "What are you doing?");
+                            setTimeout(Patient.SetSpeech, 2500, "ARGGG");
+                            setTimeout(Doctor.SetSpeech, 4000, "*LICK*");
+                            setTimeout(Patient.SetSpeech, 6000, "EWW STOP IT");
+                            setTimeout(Doctor.SetSpeech, 8000, "*LICK*");
+                            setTimeout(Patient.SetSpeech, 11000, ":'(");
+                            setTimeout(Patient.SetState, 12000, 3);
+                            document.getElementById('Tongue').src = "http://i.imgur.com/9TrdzsP.jpg";
+                            break;
+                        case 3:
+                            Doctor.SetSpeech("I think I've licked her enough ( ͡° ͜ʖ ͡°)");
+                            break;
+                        case 4:
+                            Patient.SetSpeech("Seems ineffective..");
+                            break;
+                        case 5:
+                            Patient.SetSpeech("Hmm tastes like apple");
+                            break;
+                    }
+                }
+
+            };
+
+            var Cloth=
+            {
+                   mTool: Object,
+                   Type: ClothCID,
+                   Init:function()
+                   {
+                       this.mTool = new Tool();
+                       this.mTool.Type = this.Type;
+                   },
+                   Press:function()
+                   {
+                       this.mTool.OnPressed();
+                       SetCurrentTool(this);
+                   },
+                   OnUse:function()
+                   {
+                       switch (Patient.State)
+                       {
+                           case 0:
+                               Patient.SetSpeech("Uhm, thanks?");
+                               break;
+                           case 1:
+                               document.getElementById('Cloth').src = "http://i.imgur.com/TWtks8Z.png";
+                               Patient.SetState(2);
+                               Patient.SetSpeech("Im starting to feel dissy");
+                               break;
+                           case 2:
+                           case 3:
+                               Patient.SetSpeech("That cloth is nasty man");
+                               break;
+                           case 4:
+                               Patient.State = 5;
+                               Patient.SetSpeech("That cloth is nasty man");
+                               setTimeout(Doctor.SetSpeech, 0, "I might be able to use the filth on this cloth as lube..");
+                               setTimeout(Doctor.SetSpeech, 3000, "*PLOOP*");
+                               setTimeout(Patient.SetState, 4000, 5);
+                               document.getElementById('Cloth').src = "http://i.imgur.com/8467W2r.png";
+                               break;
+                           case 5:
+                               Patient.SetSpeech("If you even get close with that cloth, I will kill you");
+                               break;
+                       }
+                   }
+
+            };
+
+            CurrentTool = null;
+            function SetCurrentTool(pTool)
+            {
+                CurrentTool = pTool;
+                if (CurrentTool == null)
+                    return;
+                TempTool = new Tool();
+                document.getElementById('CurrentTool').innerHTML = "Current tool: " + TempTool.CIDToName(CurrentTool.Type);
+            }
+            function Init()
+            {
+                SetCurrentTool(null);
+                Patient.Init();
+                Hand.Init();
+                Needle.Init();
+                Pincet.Init();
+                Tongue.Init();
+                Cloth.Init();
+            }
+
+            Init();
+
+            function ClickOnImage(pImage)
+            {
+                if (Hand.mTool.IsPressed(pImage))
+                {
+                    Hand.Press();
+                }
+
+                if(Needle.mTool.IsPressed(pImage))
+                {
+                    Needle.Press();
+                }
+
+                if(Pincet.mTool.IsPressed(pImage))
+                {
+                    Pincet.Press();
+                }
+
+                if(Tongue.mTool.IsPressed(pImage))
+                {
+                    Tongue.Press();
+                }
+
+                if(Cloth.mTool.IsPressed(pImage))
+                {
+                    Cloth.Press();
+                }
+
+                if(Patient.IsPressed(pImage))
+                {
+                    Patient.Press();
+                }
+                LastImage =pImage;
+            }
+        </script>
+        &nbsp;
+
+    <p id="DoctorLabel">
+        &nbsp;</p>
+    
+</body>
+</html>
